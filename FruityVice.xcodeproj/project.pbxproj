@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		14B026AD2E93EC390039B280 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B026AC2E93EC390039B280 /* ImagePicker.swift */; };
+		14B026AF2E9406FB0039B280 /* FlippableCardContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B026AE2E9406FB0039B280 /* FlippableCardContainer.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		14B026872E93E92E0039B280 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		14B026792E93E9280039B280 /* FruityVice.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FruityVice.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		14B026862E93E92E0039B280 /* FruityViceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FruityViceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		14B026902E93E92F0039B280 /* FruityViceUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FruityViceUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		14B026AC2E93EC390039B280 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		14B026AE2E9406FB0039B280 /* FlippableCardContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlippableCardContainer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -43,6 +50,11 @@
 		14B026932E93E92F0039B280 /* FruityViceUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FruityViceUITests;
+			sourceTree = "<group>";
+		};
+		14B026A72E93EB670039B280 /* Views */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +87,9 @@
 		14B026702E93E9280039B280 = {
 			isa = PBXGroup;
 			children = (
+				14B026AE2E9406FB0039B280 /* FlippableCardContainer.swift */,
+				14B026AC2E93EC390039B280 /* ImagePicker.swift */,
+				14B026A72E93EB670039B280 /* Views */,
 				14B0267B2E93E9280039B280 /* FruityVice */,
 				14B026892E93E92E0039B280 /* FruityViceTests */,
 				14B026932E93E92F0039B280 /* FruityViceUITests */,
@@ -109,6 +124,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				14B0267B2E93E9280039B280 /* FruityVice */,
+				14B026A72E93EB670039B280 /* Views */,
 			);
 			name = FruityVice;
 			packageProductDependencies = (
@@ -236,6 +252,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14B026AD2E93EC390039B280 /* ImagePicker.swift in Sources */,
+				14B026AF2E9406FB0039B280 /* FlippableCardContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -397,6 +415,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app requires access to the camera to take photos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "No App requires access";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -424,6 +444,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app requires access to the camera to take photos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "No App requires access";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
