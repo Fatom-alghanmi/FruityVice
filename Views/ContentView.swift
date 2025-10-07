@@ -1,12 +1,18 @@
 import SwiftUI
 import PDFKit
 
+// Store image + date/time
+struct FruitImageInfo {
+    var image: UIImage
+    var date: Date
+}
+
 struct ContentView: View {
     @State private var fruits: [Fruit] = []
     @State private var selectedFruit: Fruit? = nil
 
-    // Each fruit keeps its own image (persisted)
-    @State private var fruitImages: [String: UIImage] = [:]
+    // Store fruit images with date/time
+    @State private var fruitImages: [String: FruitImageInfo] = [:]
 
     @State private var pickerSource: UIImagePickerController.SourceType = .photoLibrary
 
@@ -23,8 +29,8 @@ struct ContentView: View {
                     HStack {
                         Text(fruit.name)
                         Spacer()
-                        if let image = fruitImages[fruit.name] {
-                            Image(uiImage: image)
+                        if let info = fruitImages[fruit.name] {
+                            Image(uiImage: info.image)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 40, height: 40)
@@ -47,12 +53,13 @@ struct ContentView: View {
             }
             .sheet(item: $selectedFruit) { fruit in
                 let binding = Binding<UIImage?>(
-                    get: { fruitImages[fruit.name] },
+                    get: { fruitImages[fruit.name]?.image },
                     set: { newImage in
-                        fruitImages[fruit.name] = newImage
                         if let image = newImage {
+                            fruitImages[fruit.name] = FruitImageInfo(image: image, date: Date())
                             saveImage(image, for: fruit.name)
                         } else {
+                            fruitImages[fruit.name] = nil
                             deleteImage(for: fruit.name)
                         }
                     }
@@ -110,7 +117,7 @@ struct ContentView: View {
                 let name = file.deletingPathExtension().lastPathComponent
                 if let data = try? Data(contentsOf: file),
                    let image = UIImage(data: data) {
-                    fruitImages[name] = image
+                    fruitImages[name] = FruitImageInfo(image: image, date: Date()) // Default to now
                 }
             }
             print("✅ Loaded saved images: \(fruitImages.keys)")
@@ -126,7 +133,7 @@ struct ContentView: View {
         print("🗑️ Deleted image for \(fruitName)")
     }
 
-    // MARK: - PDF Report
+    // MARK: - PDF Report with Date/Time
     func savePDFReport() {
         let pdfMetaData = [
             kCGPDFContextCreator: "Fruity App",
@@ -145,18 +152,28 @@ struct ContentView: View {
             for fruit in fruits {
                 context.beginPage()
 
-                // Draw fruit text
                 let textAttributes = [
-                    NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 24)
+                    NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 20)
                 ]
-                let text = "\(fruit.name)\nFamily: \(fruit.family)\nCalories: \(fruit.nutritions.calories)"
-                let textRect = CGRect(x: 20, y: 20, width: pageWidth - 40, height: 100)
+
+                var text = "\(fruit.name)\nFamily: \(fruit.family)\nCalories: \(fruit.nutritions.calories)"
+
+                // Add date/time if available
+                if let info = fruitImages[fruit.name] {
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateStyle = .medium
+                    dateFormatter.timeStyle = .short
+                    text += "\nPhoto Date: \(dateFormatter.string(from: info.date))"
+                }
+
+                let textRect = CGRect(x: 20, y: 20, width: pageWidth - 40, height: 140)
                 text.draw(in: textRect, withAttributes: textAttributes)
 
                 // Draw image if available
-                if let image = fruitImages[fruit.name] {
+                if let info = fruitImages[fruit.name] {
+                    let image = info.image
                     let imageMaxWidth = pageWidth - 40
-                    let imageMaxHeight = pageHeight - 150
+                    let imageMaxHeight = pageHeight - 200
                     let aspectRatio = image.size.width / image.size.height
                     var imageWidth = imageMaxWidth
                     var imageHeight = imageWidth / aspectRatio
@@ -166,7 +183,7 @@ struct ContentView: View {
                     }
                     let imageRect = CGRect(
                         x: (pageWidth - imageWidth) / 2,
-                        y: 120,
+                        y: 160,
                         width: imageWidth,
                         height: imageHeight
                     )
@@ -175,7 +192,6 @@ struct ContentView: View {
             }
         }
 
-        // Present share sheet
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("FruitsReport.pdf")
         do {
             try data.write(to: tempURL)
