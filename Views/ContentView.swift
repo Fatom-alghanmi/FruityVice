@@ -1,20 +1,24 @@
 import SwiftUI
 import PDFKit
+import CoreLocation
 
-// Store image + date/time
+// Store image + date/time + location + source info
 struct FruitImageInfo {
     var image: UIImage
     var date: Date
+    var location: CLLocation?
+    var source: String // "Camera" or "Library"
 }
 
 struct ContentView: View {
     @State private var fruits: [Fruit] = []
     @State private var selectedFruit: Fruit? = nil
 
-    // Store fruit images with date/time
+    // Store fruit images with extra info
     @State private var fruitImages: [String: FruitImageInfo] = [:]
 
     @State private var pickerSource: UIImagePickerController.SourceType = .photoLibrary
+    @StateObject private var locationManager = LocationManager()
 
     private var isCameraAvailable: Bool {
         UIImagePickerController.isSourceTypeAvailable(.camera)
@@ -56,7 +60,13 @@ struct ContentView: View {
                     get: { fruitImages[fruit.name]?.image },
                     set: { newImage in
                         if let image = newImage {
-                            fruitImages[fruit.name] = FruitImageInfo(image: image, date: Date())
+                            let source = pickerSource == .camera ? "Camera" : "Library"
+                            fruitImages[fruit.name] = FruitImageInfo(
+                                image: image,
+                                date: Date(),
+                                location: locationManager.lastLocation,
+                                source: source
+                            )
                             saveImage(image, for: fruit.name)
                         } else {
                             fruitImages[fruit.name] = nil
@@ -117,7 +127,12 @@ struct ContentView: View {
                 let name = file.deletingPathExtension().lastPathComponent
                 if let data = try? Data(contentsOf: file),
                    let image = UIImage(data: data) {
-                    fruitImages[name] = FruitImageInfo(image: image, date: Date()) // Default to now
+                    fruitImages[name] = FruitImageInfo(
+                        image: image,
+                        date: Date(),
+                        location: nil,
+                        source: "Unknown"
+                    )
                 }
             }
             print("✅ Loaded saved images: \(fruitImages.keys)")
@@ -133,7 +148,7 @@ struct ContentView: View {
         print("🗑️ Deleted image for \(fruitName)")
     }
 
-    // MARK: - PDF Report with Date/Time
+    // MARK: - PDF Report with Date/Time & Location
     func savePDFReport() {
         let pdfMetaData = [
             kCGPDFContextCreator: "Fruity App",
@@ -150,6 +165,7 @@ struct ContentView: View {
 
         let data = renderer.pdfData { context in
             for fruit in fruits {
+                guard let info = fruitImages[fruit.name] else { continue } // only include fruits with photos
                 context.beginPage()
 
                 let textAttributes = [
@@ -158,37 +174,39 @@ struct ContentView: View {
 
                 var text = "\(fruit.name)\nFamily: \(fruit.family)\nCalories: \(fruit.nutritions.calories)"
 
-                // Add date/time if available
-                if let info = fruitImages[fruit.name] {
-                    let dateFormatter = DateFormatter()
-                    dateFormatter.dateStyle = .medium
-                    dateFormatter.timeStyle = .short
-                    text += "\nPhoto Date: \(dateFormatter.string(from: info.date))"
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateStyle = .medium
+                dateFormatter.timeStyle = .short
+                text += "\nPhoto Date: \(dateFormatter.string(from: info.date))"
+                text += "\nSource: \(info.source)"
+
+                if let location = info.location {
+                    text += "\nLocation: Lat \(location.coordinate.latitude), Lon \(location.coordinate.longitude)"
+                } else {
+                    text += "\nLocation: Not available"
                 }
 
-                let textRect = CGRect(x: 20, y: 20, width: pageWidth - 40, height: 140)
+                let textRect = CGRect(x: 20, y: 20, width: pageWidth - 40, height: 120)
                 text.draw(in: textRect, withAttributes: textAttributes)
 
-                // Draw image if available
-                if let info = fruitImages[fruit.name] {
-                    let image = info.image
-                    let imageMaxWidth = pageWidth - 40
-                    let imageMaxHeight = pageHeight - 200
-                    let aspectRatio = image.size.width / image.size.height
-                    var imageWidth = imageMaxWidth
-                    var imageHeight = imageWidth / aspectRatio
-                    if imageHeight > imageMaxHeight {
-                        imageHeight = imageMaxHeight
-                        imageWidth = imageHeight * aspectRatio
-                    }
-                    let imageRect = CGRect(
-                        x: (pageWidth - imageWidth) / 2,
-                        y: 160,
-                        width: imageWidth,
-                        height: imageHeight
-                    )
-                    image.draw(in: imageRect)
+                // Draw image
+                let image = info.image
+                let imageMaxWidth = pageWidth - 40
+                let imageMaxHeight = pageHeight - 150
+                let aspectRatio = image.size.width / image.size.height
+                var imageWidth = imageMaxWidth
+                var imageHeight = imageWidth / aspectRatio
+                if imageHeight > imageMaxHeight {
+                    imageHeight = imageMaxHeight
+                    imageWidth = imageHeight * aspectRatio
                 }
+                let imageRect = CGRect(
+                    x: (pageWidth - imageWidth) / 2,
+                    y: 140,
+                    width: imageWidth,
+                    height: imageHeight
+                )
+                image.draw(in: imageRect)
             }
         }
 
